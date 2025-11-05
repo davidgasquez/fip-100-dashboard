@@ -11,3 +11,7 @@ data: $(CSV_TARGETS)
 $(CSV_TARGETS): data/%.csv: datasets/%.py
 	@mkdir -p data
 	@$(PYTHON) $<
+
+.PHONY: dashboard
+dashboard:
+	npm run dev --prefix dashboard
