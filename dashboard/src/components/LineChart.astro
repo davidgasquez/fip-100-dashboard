@@ -155,6 +155,15 @@ const xTicks = xTickPoints.map((point) => ({
 	label: formatDate(point.xLabel),
 }));
 
+const referenceDateIso = "2025-04-07";
+const referenceTimestamp = new Date(referenceDateIso).getTime();
+const referenceX =
+	Number.isFinite(referenceTimestamp) &&
+	referenceTimestamp >= xMin &&
+	referenceTimestamp <= xMax
+		? toX(referenceTimestamp)
+		: null;
+
 const latest = data[data.length - 1];
 ---
 
@@ -182,6 +191,16 @@ const latest = data[data.length - 1];
 				y2={tick.y}
 			/>
 		))}
+
+		{referenceX !== null && (
+			<line
+				class="chart__reference-line"
+				x1={referenceX}
+				y1={margin.top}
+				x2={referenceX}
+				y2={height - margin.bottom}
+			/>
+		)}
 
 		<path class="chart__line" d={pathData} stroke={stroke} />
 
@@ -240,6 +259,12 @@ const latest = data[data.length - 1];
 	.chart__line {
 		fill: none;
 		stroke-width: 2;
+	}
+
+	.chart__reference-line {
+		stroke: #b42318;
+		stroke-width: 1.5;
+		stroke-dasharray: 4 4;
 	}
 
 	.chart__grid {
