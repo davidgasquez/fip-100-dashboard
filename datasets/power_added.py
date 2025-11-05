@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+from pathlib import Path
 
 import polars as pl
 from google.cloud import bigquery
@@ -29,4 +30,4 @@ data = client.query(sql).to_arrow(create_bqstorage_client=True)
 
 df = pl.DataFrame(data)
 
-df.write_csv("data/power_added.csv")
+df.write_csv(f"data/{Path(__file__).stem}.csv")
