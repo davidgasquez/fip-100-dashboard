@@ -6,4 +6,5 @@ Data and charts to track [FIP 100](https://github.com/filecoin-project/FIPs/blob
 
 - [FIP-100](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0100.md)
 - [Discussion](https://github.com/filecoin-project/FIPs/discussions/1105)
+- [Timelines](https://github.com/filecoin-project/community/discussions/74)
 - [Filecoin in Numbers](https://numbers.filecoindataportal.xyz/)

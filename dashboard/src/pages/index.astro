@@ -1,5 +1,5 @@
 ---
-
+import LineChart from "../components/LineChart.astro";
 ---
 
 <html lang="en">
@@ -10,10 +10,98 @@
 			type="image/svg+xml"
 			href="/fip-100-dashboard/favicon.svg"
 		/>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap"
+			rel="stylesheet"
+		/>
 		<meta name="viewport" content="width=device-width" />
 		<title>FIP-100 Dashboard</title>
+		<style>
+			:root {
+				color-scheme: light;
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: flex;
+				justify-content: center;
+				padding: 3rem 1.5rem 4rem;
+				background: #ffffff;
+				color: #111111;
+				font-family: "JetBrains Mono", monospace;
+				line-height: 1.7;
+			}
+
+			main {
+				width: min(960px, 100%);
+				display: flex;
+				flex-direction: column;
+				gap: 2.5rem;
+			}
+
+			h1 {
+				margin: 0;
+				font-size: clamp(2.2rem, 6vw, 3.4rem);
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+			}
+
+			.subtitle {
+				margin: 0;
+				font-size: clamp(1rem, 3vw, 1.2rem);
+			}
+
+			.charts {
+				display: flex;
+				flex-direction: column;
+				gap: 2rem;
+			}
+
+			.chart-section {
+				display: flex;
+				flex-direction: column;
+				gap: 0.75rem;
+			}
+
+			.chart-section header {
+				font-weight: 600;
+				font-size: 1rem;
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
+				margin: 0;
+				/* Align label with chart plotting area */
+				padding: 0 0 0 54px;
+			}
+		</style>
 	</head>
 	<body>
-		<h1>FIP-100 Dashboard</h1>
+		<main>
+			<section>
+				<h1>FIP-100 Dashboard</h1>
+				<p class="subtitle">
+					Metrics to track FIP 100 real-world network behavior
+				</p>
+			</section>
+
+			<section class="charts">
+				<div class="chart-section">
+					<header>Power Added (RBP)</header>
+					<LineChart
+						csvPath="data/power_added.csv"
+						xKey="date"
+						yKey="rbp"
+					/>
+				</div>
+			</section>
+		</main>
 	</body>
 </html>
