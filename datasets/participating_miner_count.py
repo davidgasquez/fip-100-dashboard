@@ -27,6 +27,6 @@ order by 1 desc
 
 data = client.query(sql).to_arrow(create_bqstorage_client=True)
 
-df = pl.DataFrame(data)
+df = pl.DataFrame(data).with_columns(pl.col("date").dt.strftime("%Y-%m-%d"))
 
 df.write_json(f"public/{Path(__file__).stem}.json")

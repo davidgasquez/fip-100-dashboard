@@ -24,67 +24,173 @@ const payload = JSON.stringify({ points, label });
   <canvas role="img" aria-label={label} data-line-chart={payload}></canvas>
 </figure>
 
+<style>
+  .line-chart {
+    margin: 0;
+    width: 100%;
+    position: relative;
+  }
+
+  .line-chart canvas {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+
 <script>
   import Chart from "chart.js/auto";
+  import annotationPlugin from "chartjs-plugin-annotation";
   import "chartjs-adapter-date-fns";
 
-  const init = () => {
-    document.querySelectorAll("[data-line-chart]").forEach((node) => {
-      if (!(node instanceof HTMLCanvasElement)) {
-        return;
-      }
+  Chart.register(annotationPlugin);
 
-      const payload = node.dataset.lineChart;
-      if (!payload) {
-        return;
-      }
+  const charts = new Map<
+    HTMLCanvasElement,
+    {
+      chart: Chart;
+      resizeObserver?: ResizeObserver;
+    }
+  >();
+  let resizeListenerAttached = false;
 
-      const { points, label } = JSON.parse(payload);
+  const resizeCharts = () => {
+    charts.forEach(({ chart }) => {
+      chart.resize();
+    });
+  };
 
-      new Chart(node, {
-        type: "line",
-        data: {
-          datasets: [
-            {
-              label,
-              data: points,
-              pointRadius: 0,
-              borderColor: "#000000",
-            },
-          ],
+  const ensureResizeListener = () => {
+    if (!resizeListenerAttached) {
+      window.addEventListener("resize", resizeCharts);
+      resizeListenerAttached = true;
+    }
+  };
+
+  const maybeRemoveResizeListener = () => {
+    if (resizeListenerAttached && charts.size === 0) {
+      window.removeEventListener("resize", resizeCharts);
+      resizeListenerAttached = false;
+    }
+  };
+
+  const mountChart = (node: Element) => {
+    if (!(node instanceof HTMLCanvasElement) || charts.has(node)) {
+      return;
+    }
+
+    const payload = node.dataset.lineChart;
+    if (!payload) {
+      return;
+    }
+
+    const { points, label } = JSON.parse(payload);
+
+    const chart = new Chart(node, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label,
+            data: points,
+            pointRadius: 0,
+            borderColor: "#000000",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
         },
-        options: {
-          animation: false,
-          interaction: {
-            mode: "index",
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
             intersect: false,
+            mode: "index",
           },
-          plugins: {
-            legend: {
-              display: false,
-            },
-            tooltip: {
-              intersect: false,
-              mode: "index",
-            },
-          },
-          scales: {
-            x: {
-              type: "time",
-              time: {
-                unit: "month",
-                displayFormats: {
-                  month: "MMM yyyy",
+          annotation: {
+            annotations: {
+              networkUpgradeV25: {
+                type: "line",
+                xMin: "2025-04-07",
+                xMax: "2025-04-07",
+                borderColor: "#d82124",
+                borderWidth: 1,
+                borderDash: [8, 8],
+                label: {
+                  display: true,
+                  content: "nv25",
+                  rotation: 0,
+                  backgroundColor: "white",
+                  color: "#d82124",
+                  font: {
+                    size: 12,
+                    weight: 600,
+                  },
+                  padding: 0,
+                  position: "start",
+                  yAdjust: -10,
                 },
               },
             },
-            y: {
-              beginAtZero: true,
-            },
           },
         },
-      });
+        scales: {
+          x: {
+            type: "time",
+            time: {
+              unit: "month",
+              displayFormats: {
+                month: "MMM yyyy",
+              },
+            },
+          },
+          y: {
+            beginAtZero: true,
+          },
+        },
+      },
     });
+
+    let resizeObserver;
+    const parent = node.parentElement;
+    if (parent && "ResizeObserver" in window) {
+      resizeObserver = new ResizeObserver(() => {
+        chart.resize();
+      });
+      resizeObserver.observe(parent);
+    }
+
+    charts.set(node, { chart, resizeObserver });
+    ensureResizeListener();
+  };
+
+  const destroyChart = (node: HTMLCanvasElement) => {
+    const entry = charts.get(node);
+    if (!entry) {
+      return;
+    }
+
+    entry.resizeObserver?.disconnect();
+    entry.chart.destroy();
+    charts.delete(node);
+    maybeRemoveResizeListener();
+  };
+
+  const init = () => {
+    document.querySelectorAll("[data-line-chart]").forEach((node) => {
+      mountChart(node);
+    });
+  };
+
+  const teardown = () => {
+    [...charts.keys()].forEach((node) => destroyChart(node));
   };
 
   if (document.readyState === "loading") {
@@ -92,4 +198,6 @@ const payload = JSON.stringify({ points, label });
   } else {
     init();
   }
+
+  window.addEventListener("beforeunload", teardown);
 </script>
