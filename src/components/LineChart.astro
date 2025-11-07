@@ -48,16 +48,38 @@ const payload = JSON.stringify({ points, label });
             {
               label,
               data: points,
+              pointRadius: 0,
+              borderColor: "#000000",
             },
           ],
         },
         options: {
+          animation: false,
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              intersect: false,
+              mode: "index",
+            },
+          },
           scales: {
             x: {
               type: "time",
               time: {
-                unit: "day",
+                unit: "month",
+                displayFormats: {
+                  month: "MMM yyyy",
+                },
               },
+            },
+            y: {
+              beginAtZero: true,
             },
           },
         },
