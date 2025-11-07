@@ -18,7 +18,7 @@ client = bigquery.Client(credentials=creds, project=info["project_id"])
 sql = """
 select
     datetime_trunc(timestamp_seconds(((height * 30) + 1598306400)), day) as date,
-    avg(participating_miner_count) as participating_miner_count
+    max(participating_miner_count) as participating_miner_count
 from `lily-data.lily.chain_powers`
 where height > 4000000
 group by 1

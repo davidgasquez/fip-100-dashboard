@@ -1,6 +1,12 @@
 ---
 type ChartDatum = Record<string, string | number>;
 
+type ChartPoint = {
+  x: number;
+  y: number;
+  label: string;
+};
+
 type LineChartProps = {
   data: ChartDatum[];
   x: string;
@@ -10,12 +16,16 @@ type LineChartProps = {
 
 const { data, x, y, label } = Astro.props as LineChartProps;
 
-const points = data
-  .map((row) => ({
-    x: String(row[x]),
-    y: Number(row[y]),
-  }))
-  .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
+const points: ChartPoint[] = data
+  .map((row) => {
+    const value = String(row[x]);
+    return {
+      x: new Date(value).getTime(),
+      y: Number(row[y]),
+      label: value,
+    };
+  })
+  .sort((a, b) => a.x - b.x);
 
 const payload = JSON.stringify({ points, label });
 ---
@@ -41,156 +51,118 @@ const payload = JSON.stringify({ points, label });
 
 <script>
   import Chart from "chart.js/auto";
+  import type { ScatterDataPoint, TooltipItem } from "chart.js";
   import annotationPlugin from "chartjs-plugin-annotation";
   import "chartjs-adapter-date-fns";
 
   Chart.register(annotationPlugin);
 
-  const charts = new Map<
-    HTMLCanvasElement,
-    {
-      chart: Chart;
-      resizeObserver?: ResizeObserver;
-    }
-  >();
-  let resizeListenerAttached = false;
-
-  const resizeCharts = () => {
-    charts.forEach(({ chart }) => {
-      chart.resize();
-    });
+  type ChartPoint = ScatterDataPoint & { label: string };
+  type ChartPayload = {
+    points: ChartPoint[];
+    label: string;
   };
 
-  const ensureResizeListener = () => {
-    if (!resizeListenerAttached) {
-      window.addEventListener("resize", resizeCharts);
-      resizeListenerAttached = true;
-    }
-  };
-
-  const maybeRemoveResizeListener = () => {
-    if (resizeListenerAttached && charts.size === 0) {
-      window.removeEventListener("resize", resizeCharts);
-      resizeListenerAttached = false;
-    }
-  };
-
-  const mountChart = (node: Element) => {
-    if (!(node instanceof HTMLCanvasElement) || charts.has(node)) {
-      return;
-    }
-
-    const payload = node.dataset.lineChart;
-    if (!payload) {
-      return;
-    }
-
-    const { points, label } = JSON.parse(payload);
-
-    const chart = new Chart(node, {
-      type: "line",
-      data: {
-        datasets: [
-          {
-            label,
-            data: points,
-            pointRadius: 0,
-            borderColor: "#000000",
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        animation: false,
-        interaction: {
-          mode: "index",
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            intersect: false,
-            mode: "index",
-          },
-          annotation: {
-            annotations: {
-              networkUpgradeV25: {
-                type: "line",
-                xMin: "2025-04-07",
-                xMax: "2025-04-07",
-                borderColor: "#d82124",
-                borderWidth: 1,
-                borderDash: [8, 8],
-                label: {
-                  display: true,
-                  content: "nv25",
-                  rotation: 0,
-                  backgroundColor: "white",
-                  color: "#d82124",
-                  font: {
-                    size: 12,
-                    weight: 600,
-                  },
-                  padding: 0,
-                  position: "start",
-                  yAdjust: -10,
-                },
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            type: "time",
-            time: {
-              unit: "month",
-              displayFormats: {
-                month: "MMM yyyy",
-              },
-            },
-          },
-          y: {
-            beginAtZero: true,
-          },
-        },
-      },
-    });
-
-    let resizeObserver;
-    const parent = node.parentElement;
-    if (parent && "ResizeObserver" in window) {
-      resizeObserver = new ResizeObserver(() => {
-        chart.resize();
-      });
-      resizeObserver.observe(parent);
-    }
-
-    charts.set(node, { chart, resizeObserver });
-    ensureResizeListener();
-  };
-
-  const destroyChart = (node: HTMLCanvasElement) => {
-    const entry = charts.get(node);
-    if (!entry) {
-      return;
-    }
-
-    entry.resizeObserver?.disconnect();
-    entry.chart.destroy();
-    charts.delete(node);
-    maybeRemoveResizeListener();
+  const formatTooltipTitle = (items: TooltipItem<"line">[]) => {
+    const raw = items[0]?.raw as ChartPoint | undefined;
+    return raw?.label ?? "";
   };
 
   const init = () => {
     document.querySelectorAll("[data-line-chart]").forEach((node) => {
-      mountChart(node);
-    });
-  };
+      if (!(node instanceof HTMLCanvasElement)) {
+        return;
+      }
 
-  const teardown = () => {
-    [...charts.keys()].forEach((node) => destroyChart(node));
+      const payload = node.dataset.lineChart;
+      if (!payload) {
+        return;
+      }
+
+      const { points, label } = JSON.parse(payload) as ChartPayload;
+
+      const chart = new Chart(node, {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label,
+              data: points,
+              pointRadius: 0,
+              borderColor: "#000000",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          animation: false,
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              intersect: false,
+              mode: "index",
+              callbacks: {
+                title: formatTooltipTitle,
+              },
+            },
+            annotation: {
+              annotations: {
+                networkUpgradeV25: {
+                  type: "line",
+                  xMin: "2025-04-07",
+                  xMax: "2025-04-07",
+                  borderColor: "#d82124",
+                  borderWidth: 1,
+                  borderDash: [8, 8],
+                  label: {
+                    display: true,
+                    content: "nv25",
+                    rotation: 0,
+                    backgroundColor: "white",
+                    color: "#d82124",
+                    font: {
+                      size: 12,
+                      weight: 600,
+                    },
+                    padding: 0,
+                    position: "start",
+                    yAdjust: -10,
+                  },
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                unit: "month",
+                displayFormats: {
+                  month: "MMM yyyy",
+                },
+              },
+            },
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      const parent = node.parentElement;
+      if (parent && "ResizeObserver" in window) {
+        const resizeObserver = new ResizeObserver(() => {
+          chart.resize();
+        });
+        resizeObserver.observe(parent);
+      }
+    });
   };
 
   if (document.readyState === "loading") {
@@ -198,6 +170,4 @@ const payload = JSON.stringify({ points, label });
   } else {
     init();
   }
-
-  window.addEventListener("beforeunload", teardown);
 </script>
