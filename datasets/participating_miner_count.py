@@ -18,16 +18,15 @@ client = bigquery.Client(credentials=creds, project=info["project_id"])
 sql = """
 select
     datetime_trunc(timestamp_seconds(((height * 30) + 1598306400)), day) as date,
-    avg(cast(total_raw_bytes_power as numeric) / (1024 * 1024 * 1024 * 1024 * 1024)) as rbp,
     avg(participating_miner_count) as participating_miner_count
 from `lily-data.lily.chain_powers`
+where height > 4000000
 group by 1
 order by 1 desc
-limit 1000
 """
 
 data = client.query(sql).to_arrow(create_bqstorage_client=True)
 
 df = pl.DataFrame(data)
 
-df.write_csv(f"data/{Path(__file__).stem}.csv")
+df.write_json(f"public/{Path(__file__).stem}.json")

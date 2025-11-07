@@ -24,8 +24,6 @@ jobs:
           ENCODED_GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.ENCODED_GOOGLE_APPLICATION_CREDENTIALS }}
       - name: Install, build, and upload your site output
         uses: withastro/action@v5
-        with:
-          path: dashboard
 
   deploy:
     needs: build

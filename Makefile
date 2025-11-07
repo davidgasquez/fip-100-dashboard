@@ -1,17 +1,21 @@
-PYTHON ?= uv run
+PYTHON ?= uv run --project datasets
 
 DATASET_SCRIPTS := $(wildcard datasets/*.py)
 DATASET_NAMES := $(patsubst datasets/%.py,%,$(DATASET_SCRIPTS))
-CSV_TARGETS := $(addprefix data/,$(addsuffix .csv,$(DATASET_NAMES)))
+JSON_TARGETS := $(addprefix public/,$(addsuffix .json,$(DATASET_NAMES)))
 
 .PHONY: data
 
-data: $(CSV_TARGETS)
+data: $(JSON_TARGETS)
 
-$(CSV_TARGETS): data/%.csv: datasets/%.py
-	@mkdir -p data
+$(JSON_TARGETS): public/%.json: datasets/%.py
+	@mkdir -p public
 	@$(PYTHON) $<
 
-.PHONY: dashboard
-dashboard:
-	npm run dev --prefix dashboard
+.PHONY: dev
+dev:
+	npm run dev
+
+.PHONY: check
+check:
+	npm run astro check

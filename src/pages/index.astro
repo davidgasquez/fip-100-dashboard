@@ -1,5 +1,6 @@
 ---
 import LineChart from "../components/LineChart.astro";
+import minerCountData from "../../public/participating_miner_count.json";
 ---
 
 <html lang="en">
@@ -78,8 +79,6 @@ import LineChart from "../components/LineChart.astro";
 				text-transform: uppercase;
 				letter-spacing: 0.04em;
 				margin: 0;
-				/* Align label with chart plotting area */
-				padding: 0 0 0 54px;
 			}
 		</style>
 	</head>
@@ -94,11 +93,12 @@ import LineChart from "../components/LineChart.astro";
 
 			<section class="charts">
 				<div class="chart-section">
-					<header>Power Added (RBP)</header>
+					<header>Participating Miner Count</header>
 					<LineChart
-						csvPath="data/power_added.csv"
-						xKey="date"
-						yKey="rbp"
+						data={minerCountData}
+						x="date"
+						y="participating_miner_count"
+						label="Participating Miner Count"
 					/>
 				</div>
 			</section>

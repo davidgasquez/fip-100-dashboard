@@ -1,0 +1,73 @@
+---
+type ChartDatum = Record<string, string | number>;
+
+type LineChartProps = {
+  data: ChartDatum[];
+  x: string;
+  y: string;
+  label: string;
+};
+
+const { data, x, y, label } = Astro.props as LineChartProps;
+
+const points = data
+  .map((row) => ({
+    x: String(row[x]),
+    y: Number(row[y]),
+  }))
+  .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
+
+const payload = JSON.stringify({ points, label });
+---
+
+<figure class="line-chart">
+  <canvas role="img" aria-label={label} data-line-chart={payload}></canvas>
+</figure>
+
+<script>
+  import Chart from "chart.js/auto";
+  import "chartjs-adapter-date-fns";
+
+  const init = () => {
+    document.querySelectorAll("[data-line-chart]").forEach((node) => {
+      if (!(node instanceof HTMLCanvasElement)) {
+        return;
+      }
+
+      const payload = node.dataset.lineChart;
+      if (!payload) {
+        return;
+      }
+
+      const { points, label } = JSON.parse(payload);
+
+      new Chart(node, {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label,
+              data: points,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                unit: "day",
+              },
+            },
+          },
+        },
+      });
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+</script>
