@@ -27,7 +27,7 @@ const points: ChartPoint[] = data
   })
   .sort((a, b) => a.x - b.x);
 
-const payload = JSON.stringify({ points, label });
+const payload = JSON.stringify(points);
 ---
 
 <figure class="line-chart">
@@ -57,117 +57,98 @@ const payload = JSON.stringify({ points, label });
 
   Chart.register(annotationPlugin);
 
-  type ChartPoint = ScatterDataPoint & { label: string };
-  type ChartPayload = {
-    points: ChartPoint[];
-    label: string;
-  };
+type ChartPoint = ScatterDataPoint & { label: string };
 
-  const formatTooltipTitle = (items: TooltipItem<"line">[]) => {
-    const raw = items[0]?.raw as ChartPoint | undefined;
-    return raw?.label ?? "";
-  };
+  const renderLineChart = (canvas: HTMLCanvasElement) => {
+    const payload = canvas.dataset.lineChart;
+    if (!payload) return;
 
-  const init = () => {
-    document.querySelectorAll("[data-line-chart]").forEach((node) => {
-      if (!(node instanceof HTMLCanvasElement)) {
-        return;
-      }
+    const points = JSON.parse(payload) as ChartPoint[];
+    const label = canvas.getAttribute("aria-label") ?? "";
 
-      const payload = node.dataset.lineChart;
-      if (!payload) {
-        return;
-      }
-
-      const { points, label } = JSON.parse(payload) as ChartPayload;
-
-      const chart = new Chart(node, {
-        type: "line",
-        data: {
-          datasets: [
-            {
-              label,
-              data: points,
-              pointRadius: 0,
-              borderColor: "#000000",
-            },
-          ],
+    new Chart(canvas, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label,
+            data: points,
+            pointRadius: 0,
+            borderColor: "#000000",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
         },
-        options: {
-          responsive: true,
-          animation: false,
-          interaction: {
-            mode: "index",
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
             intersect: false,
-          },
-          plugins: {
-            legend: {
-              display: false,
-            },
-            tooltip: {
-              intersect: false,
-              mode: "index",
-              callbacks: {
-                title: formatTooltipTitle,
+            mode: "index",
+            callbacks: {
+              title: (items: TooltipItem<"line">[]) => {
+                const raw = items[0]?.raw as ChartPoint | undefined;
+                return raw?.label ?? "";
               },
             },
-            annotation: {
-              annotations: {
-                networkUpgradeV25: {
-                  type: "line",
-                  xMin: "2025-04-07",
-                  xMax: "2025-04-07",
-                  borderColor: "#d82124",
-                  borderWidth: 1,
-                  borderDash: [8, 8],
-                  label: {
-                    display: true,
-                    content: "nv25",
-                    rotation: 0,
-                    backgroundColor: "white",
-                    color: "#d82124",
-                    font: {
-                      size: 12,
-                      weight: 600,
-                    },
-                    padding: 0,
-                    position: "start",
-                    yAdjust: -10,
+          },
+          annotation: {
+            annotations: {
+              networkUpgradeV25: {
+                type: "line",
+                xMin: "2025-04-07",
+                xMax: "2025-04-07",
+                borderColor: "#d82124",
+                borderWidth: 1,
+                borderDash: [8, 8],
+                label: {
+                  display: true,
+                  content: "nv25",
+                  rotation: 0,
+                  backgroundColor: "white",
+                  color: "#d82124",
+                  font: {
+                    size: 12,
+                    weight: 600,
                   },
+                  padding: 0,
+                  position: "start",
+                  yAdjust: -10,
                 },
               },
-            },
-          },
-          scales: {
-            x: {
-              type: "time",
-              time: {
-                unit: "month",
-                displayFormats: {
-                  month: "MMM yyyy",
-                },
-              },
-            },
-            y: {
-              beginAtZero: true,
             },
           },
         },
-      });
-
-      const parent = node.parentElement;
-      if (parent && "ResizeObserver" in window) {
-        const resizeObserver = new ResizeObserver(() => {
-          chart.resize();
-        });
-        resizeObserver.observe(parent);
-      }
+        scales: {
+          x: {
+            type: "time",
+            time: {
+              unit: "month",
+              displayFormats: {
+                month: "MMM yyyy",
+              },
+            },
+          },
+          y: {
+            beginAtZero: true,
+          },
+        },
+      },
     });
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  const init = () => {
+    document
+      .querySelectorAll<HTMLCanvasElement>("canvas[data-line-chart]")
+      .forEach(renderLineChart);
+  };
+
+  init();
 </script>
