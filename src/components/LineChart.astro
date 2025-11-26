@@ -8,19 +8,19 @@ type LineChartProps = {
 
 const { data, x, y, label } = Astro.props as LineChartProps;
 
-const payload = JSON.stringify(
-  data
-    .map((row) => {
-      const value = String(row[x]);
-      return {
-        x: new Date(value).getTime(),
-        y: Number(row[y]),
-        label: value,
-      };
-    })
-    .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
-    .sort((a, b) => a.x - b.x)
-);
+const points = data
+  .map((row) => {
+    const value = String(row[x]);
+    return {
+      x: new Date(value).getTime(),
+      y: Number(row[y]),
+      label: value,
+    };
+  })
+  .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+  .sort((a, b) => a.x - b.x);
+
+const payload = JSON.stringify(points);
 ---
 
 <figure class="line-chart">
@@ -52,126 +52,95 @@ const payload = JSON.stringify(
 
   type ChartPoint = ScatterDataPoint & { label: string };
 
-  const tooltipTitle = (items: TooltipItem<"line">[]) => {
-    const raw = items[0]?.raw as ChartPoint | undefined;
-    return raw?.label ?? "";
-  };
+  document
+    .querySelectorAll<HTMLCanvasElement>("canvas[data-line-chart]")
+    .forEach((canvas) => {
+      const dataset = canvas.dataset.lineChart;
+      if (!dataset) {
+        throw new Error("Missing line chart payload");
+      }
 
-  const renderLineChart = (canvas: HTMLCanvasElement) => {
-    const payload = canvas.dataset.lineChart;
-    if (!payload) {
-      throw new Error("Missing line chart payload");
-    }
+      const points = JSON.parse(dataset) as ChartPoint[];
+      const label = canvas.ariaLabel ?? "";
+      const strokeColor =
+        getComputedStyle(canvas).getPropertyValue("--line-accent").trim() ||
+        "#0f172a";
 
-    const points = JSON.parse(payload) as ChartPoint[];
-    const label = canvas.getAttribute("aria-label") ?? "";
-    const strokeColor =
-      getComputedStyle(canvas).getPropertyValue("--line-accent").trim() ||
-      "#0f172a";
-
-    new Chart(canvas, {
-      type: "line",
-      data: {
-        datasets: [
-          {
-            label,
-            data: points,
-            pointRadius: 0,
-            borderColor: strokeColor,
-            borderWidth: 2,
-            tension: 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        normalized: true,
-        interaction: {
-          mode: "index",
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            intersect: false,
-            mode: "index",
-            callbacks: {
-              title: tooltipTitle,
+      new Chart(canvas, {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label,
+              data: points,
+              pointRadius: 0,
+              borderColor: strokeColor,
+              borderWidth: 2,
+              tension: 0,
             },
-          },
-          annotation: {
-            annotations: {
-              networkUpgradeV25: {
-                type: "line",
-                xMin: "2025-04-07",
-                xMax: "2025-04-07",
-                borderColor: "#d82124",
-                borderWidth: 1,
-                borderDash: [8, 8],
-                label: {
-                  display: true,
-                  content: "nv25",
-                  rotation: 0,
-                  backgroundColor: "white",
-                  color: "#d82124",
-                  font: {
-                    size: 12,
-                    weight: 600,
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          normalized: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              intersect: false,
+              mode: "index",
+              callbacks: {
+                title: ([first]: TooltipItem<"line">[]) =>
+                  ((first?.raw as ChartPoint | undefined)?.label) ?? "",
+              },
+            },
+            annotation: {
+              annotations: {
+                networkUpgradeV25: {
+                  type: "line",
+                  xMin: "2025-04-07",
+                  xMax: "2025-04-07",
+                  borderColor: "#d82124",
+                  borderWidth: 1,
+                  borderDash: [8, 8],
+                  label: {
+                    display: true,
+                    content: "nv25",
+                    rotation: 0,
+                    backgroundColor: "white",
+                    color: "#d82124",
+                    font: { size: 12, weight: 600 },
+                    padding: 0,
+                    position: "start",
+                    yAdjust: -10,
                   },
-                  padding: 0,
-                  position: "start",
-                  yAdjust: -10,
                 },
               },
             },
           },
-        },
-        scales: {
-          x: {
-            type: "time",
-            time: {
-              unit: "month",
-              tooltipFormat: "PPP",
-              displayFormats: {
-                month: "MMM yyyy",
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                unit: "month",
+                tooltipFormat: "PPP",
+                displayFormats: { month: "MMM yyyy" },
               },
+              grid: { display: false },
+              border: { color: strokeColor, width: 1 },
+              ticks: { color: strokeColor },
             },
-            grid: {
-              display: false,
-            },
-            border: {
-              color: strokeColor,
-              width: 1,
-            },
-            ticks: {
-              color: strokeColor,
-            },
-          },
-          y: {
-            beginAtZero: true,
-            grace: "5%",
-            ticks: {
-              precision: 0,
-              color: strokeColor,
-            },
-            border: {
-              color: strokeColor,
-              width: 1,
-            },
-            grid: {
-              color: "rgba(15, 23, 42, 0.08)",
+            y: {
+              beginAtZero: true,
+              grace: "5%",
+              ticks: { precision: 0, color: strokeColor },
+              border: { color: strokeColor, width: 1 },
+              grid: { color: "rgba(15, 23, 42, 0.08)" },
             },
           },
         },
-      },
+      });
     });
-  };
-
-  document
-    .querySelectorAll<HTMLCanvasElement>("canvas[data-line-chart]")
-    .forEach(renderLineChart);
 </script>
