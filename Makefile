@@ -12,8 +12,12 @@ $(JSON_TARGETS): public/%.json: datasets/%.py
 	@mkdir -p public
 	@$(PYTHON) $<
 
+.PHONY: build
+setup:
+	npm install
+
 .PHONY: dev
-dev:
+dev: setup
 	npm run dev
 
 .PHONY: check
