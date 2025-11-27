@@ -1,6 +1,7 @@
 ---
 import LineChart from "../components/LineChart.astro";
-import minerCountData from "../../public/participating_miner_count.json";
+import powerAdded from "../../public/power_added.json";
+import participatingMiners from "../../public/participating_miner_count.json";
 ---
 
 <html lang="en">
@@ -93,9 +94,20 @@ import minerCountData from "../../public/participating_miner_count.json";
 
 			<section class="charts">
 				<div class="chart-section">
-					<header>Participating Miner Count</header>
 					<LineChart
-						data={minerCountData}
+						data={powerAdded}
+						x="date"
+						y="raw_power_added"
+						label="Raw Power Added"
+					/>
+					<LineChart
+						data={powerAdded}
+						x="date"
+						y="quality_adjusted_power_added"
+						label="Quality Adjusted Power Added"
+					/>
+					<LineChart
+						data={participatingMiners}
 						x="date"
 						y="participating_miner_count"
 						label="Participating Miner Count"
