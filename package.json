@@ -9,13 +9,13 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.15.3",
+    "astro": "^5.16.4",
     "chart.js": "^4.5.1",
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-annotation": "^3.1.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.5",
+    "@astrojs/check": "^0.9.6",
     "typescript": "^5.9.3"
   }
 }
