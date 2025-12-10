@@ -4,9 +4,10 @@ type LineChartProps = {
   x: string;
   y: string;
   label: string;
+  yLabel?: string;
 };
 
-const { data, x, y, label } = Astro.props as LineChartProps;
+const { data, x, y, label, yLabel } = Astro.props as LineChartProps;
 
 const points = data
   .map((row) => {
@@ -21,19 +22,60 @@ const points = data
   .sort((a, b) => a.x - b.x);
 
 const payload = JSON.stringify(points);
+const slugify = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+const anchorId = slugify(label) || encodeURIComponent(label);
 ---
 
-<figure class="line-chart">
-  <canvas role="img" aria-label={label} data-line-chart={payload}></canvas>
-</figure>
+<section class="line-chart" id={anchorId}>
+  <header class="chart-title">
+    <a href={`#${anchorId}`}>{label}</a>
+  </header>
+  <figure class="chart-figure">
+    <canvas
+      role="img"
+      aria-label={label}
+      data-line-chart={payload}
+      data-y-label={yLabel ?? ""}
+    ></canvas>
+  </figure>
+</section>
 
 <style>
   .line-chart {
     --line-accent: #0f172a;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     margin: 0;
   }
 
-  .line-chart canvas {
+  .chart-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .chart-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .chart-title a:hover {
+    text-decoration: underline;
+  }
+
+  .chart-figure {
+    margin: 0;
+  }
+
+  .chart-figure canvas {
     display: block;
     inline-size: 100%;
     aspect-ratio: 16 / 9;
@@ -65,6 +107,7 @@ const payload = JSON.stringify(points);
       const strokeColor =
         getComputedStyle(canvas).getPropertyValue("--line-accent").trim() ||
         "#0f172a";
+      const yLabel = canvas.dataset.yLabel?.trim() ?? "";
 
       new Chart(canvas, {
         type: "line",
@@ -138,6 +181,13 @@ const payload = JSON.stringify(points);
               ticks: { precision: 0, color: strokeColor },
               border: { color: strokeColor, width: 1 },
               grid: { color: "rgba(15, 23, 42, 0.08)" },
+              title: {
+                display: Boolean(yLabel),
+                text: yLabel,
+                color: strokeColor,
+                padding: { bottom: 4 },
+                font: { weight: 600 },
+              },
             },
           },
         },

@@ -99,18 +99,21 @@ import participatingMiners from "../../public/participating_miner_count.json";
 						x="date"
 						y="raw_power_added"
 						label="Raw Power Added"
+						yLabel="PiB"
 					/>
 					<LineChart
 						data={powerAdded}
 						x="date"
 						y="quality_adjusted_power_added"
 						label="Quality Adjusted Power Added"
+						yLabel="PiB (QAP)"
 					/>
 					<LineChart
 						data={participatingMiners}
 						x="date"
 						y="participating_miner_count"
 						label="Participating Miner Count"
+						yLabel="Miners"
 					/>
 				</div>
 			</section>
