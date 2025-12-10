@@ -4,7 +4,7 @@ DATASET_SCRIPTS := $(wildcard datasets/*.py)
 DATASET_NAMES := $(patsubst datasets/%.py,%,$(DATASET_SCRIPTS))
 JSON_TARGETS := $(addprefix public/,$(addsuffix .json,$(DATASET_NAMES)))
 
-.PHONY: data
+.PHONY: data build setup dev check
 
 data: $(JSON_TARGETS)
 
@@ -12,14 +12,14 @@ $(JSON_TARGETS): public/%.json: datasets/%.py
 	@mkdir -p public
 	@$(PYTHON) $<
 
-.PHONY: build
-setup:
+setup: package.json package-lock.json
 	npm install
 
-.PHONY: dev
 dev: setup
 	npm run dev
 
-.PHONY: check
-check:
+build: setup data
+	npm run build
+
+check: setup
 	npm run astro check
