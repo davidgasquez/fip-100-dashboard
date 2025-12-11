@@ -22,13 +22,7 @@ const points = data
   .sort((a, b) => a.x - b.x);
 
 const payload = JSON.stringify(points);
-const slugify = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-const anchorId = slugify(label) || encodeURIComponent(label);
+const anchorId = label.trim().toLowerCase().replace(/\s+/g, "-");
 ---
 
 <section class="line-chart" id={anchorId}>
@@ -79,8 +73,6 @@ const anchorId = slugify(label) || encodeURIComponent(label);
     display: block;
     inline-size: 100%;
     aspect-ratio: 16 / 9;
-    border: none;
-    background: transparent;
   }
 </style>
 
@@ -98,16 +90,14 @@ const anchorId = slugify(label) || encodeURIComponent(label);
     .querySelectorAll<HTMLCanvasElement>("canvas[data-line-chart]")
     .forEach((canvas) => {
       const dataset = canvas.dataset.lineChart;
-      if (!dataset) {
-        throw new Error("Missing line chart payload");
-      }
+      if (!dataset) return;
 
       const points = JSON.parse(dataset) as ChartPoint[];
       const label = canvas.ariaLabel ?? "";
       const strokeColor =
         getComputedStyle(canvas).getPropertyValue("--line-accent").trim() ||
         "#0f172a";
-      const yLabel = canvas.dataset.yLabel?.trim() ?? "";
+      const yLabel = (canvas.dataset.yLabel || "").trim();
 
       new Chart(canvas, {
         type: "line",
@@ -167,13 +157,13 @@ const anchorId = slugify(label) || encodeURIComponent(label);
             x: {
               type: "time",
               time: {
-                unit: "month",
+                unit: "quarter",
                 tooltipFormat: "PPP",
-                displayFormats: { month: "MMM yyyy" },
+                displayFormats: { quarter: "MMM yyyy" },
               },
               grid: { display: false },
               border: { color: strokeColor, width: 1 },
-              ticks: { color: strokeColor },
+              ticks: { color: strokeColor, maxRotation: 0 },
             },
             y: {
               beginAtZero: true,

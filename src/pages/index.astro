@@ -67,20 +67,6 @@ import participatingMiners from "../../public/participating_miner_count.json";
 				flex-direction: column;
 				gap: 2rem;
 			}
-
-			.chart-section {
-				display: flex;
-				flex-direction: column;
-				gap: 0.75rem;
-			}
-
-			.chart-section header {
-				font-weight: 600;
-				font-size: 1rem;
-				text-transform: uppercase;
-				letter-spacing: 0.04em;
-				margin: 0;
-			}
 		</style>
 	</head>
 	<body>
@@ -93,29 +79,27 @@ import participatingMiners from "../../public/participating_miner_count.json";
 			</section>
 
 			<section class="charts">
-				<div class="chart-section">
-					<LineChart
-						data={powerAdded}
-						x="date"
-						y="raw_power_added"
-						label="Raw Power Added"
-						yLabel="PiB"
-					/>
-					<LineChart
-						data={powerAdded}
-						x="date"
-						y="quality_adjusted_power_added"
-						label="Quality Adjusted Power Added"
-						yLabel="PiB (QAP)"
-					/>
-					<LineChart
-						data={participatingMiners}
-						x="date"
-						y="participating_miner_count"
-						label="Participating Miner Count"
-						yLabel="Miners"
-					/>
-				</div>
+				<LineChart
+					data={powerAdded}
+					x="date"
+					y="raw_power_added"
+					label="Raw Power Added"
+					yLabel="PiB"
+				/>
+				<LineChart
+					data={powerAdded}
+					x="date"
+					y="quality_adjusted_power_added"
+					label="Quality Adjusted Power Added"
+					yLabel="PiB (QAP)"
+				/>
+				<LineChart
+					data={participatingMiners}
+					x="date"
+					y="participating_miner_count"
+					label="Participating Miner Count"
+					yLabel="Miners"
+				/>
 			</section>
 		</main>
 	</body>
