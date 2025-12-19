@@ -23,12 +23,13 @@ const points = data
 
 const payload = JSON.stringify(points);
 const anchorId = label.trim().toLowerCase().replace(/\s+/g, "-");
+const titleId = `${anchorId}-title`;
 ---
 
-<section class="line-chart" id={anchorId}>
-  <header class="chart-title">
+<section class="line-chart" id={anchorId} aria-labelledby={titleId}>
+  <h2 class="chart-title" id={titleId}>
     <a href={`#${anchorId}`}>{label}</a>
-  </header>
+  </h2>
   <figure class="chart-figure">
     <canvas
       role="img"
@@ -41,7 +42,7 @@ const anchorId = label.trim().toLowerCase().replace(/\s+/g, "-");
 
 <style>
   .line-chart {
-    --line-accent: #0f172a;
+    --line-accent: var(--ink, #0f172a);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -54,6 +55,7 @@ const anchorId = label.trim().toLowerCase().replace(/\s+/g, "-");
     font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    line-height: 1.2;
   }
 
   .chart-title a {
