@@ -4,10 +4,11 @@ type LineChartProps = {
   x: string;
   y: string;
   label: string;
+  subtitle?: string;
   yLabel?: string;
 };
 
-const { data, x, y, label, yLabel } = Astro.props as LineChartProps;
+const { data, x, y, label, subtitle, yLabel } = Astro.props as LineChartProps;
 
 const points = data
   .map((row) => {
@@ -30,6 +31,7 @@ const titleId = `${anchorId}-title`;
   <h2 class="chart-title" id={titleId}>
     <a href={`#${anchorId}`}>{label}</a>
   </h2>
+  {subtitle ? <p class="chart-subtitle">{subtitle}</p> : null}
   <figure class="chart-figure">
     <canvas
       role="img"
@@ -65,6 +67,12 @@ const titleId = `${anchorId}-title`;
 
   .chart-title a:hover {
     text-decoration: underline;
+  }
+
+  .chart-subtitle {
+    margin: 0;
+    color: var(--muted, #475569);
+    font-size: 0.85rem;
   }
 
   .chart-figure {

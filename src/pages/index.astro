@@ -2,6 +2,7 @@
 import LineChart from "../components/LineChart.astro";
 import powerAdded from "../../public/power_added.json";
 import participatingMiners from "../../public/participating_miner_count.json";
+import precommitSectorBatchSize from "../../public/precommit_sector_batch_size.json";
 ---
 
 <html lang="en">
@@ -175,6 +176,22 @@ import participatingMiners from "../../public/participating_miner_count.json";
 					y="participating_miner_count"
 					label="Participating Miner Count"
 					yLabel="Miners"
+				/>
+				<LineChart
+					data={precommitSectorBatchSize}
+					x="date"
+					y="avg_sectors_per_message"
+					label="PreCommitSectorBatch2 mean batch size"
+					subtitle="Source: PreCommitSectorBatch2 messages"
+					yLabel="Sectors"
+				/>
+				<LineChart
+					data={precommitSectorBatchSize}
+					x="date"
+					y="messages"
+					label="PreCommitSectorBatch2 proof aggregation messages"
+					subtitle="Source: PreCommitSectorBatch2 messages"
+					yLabel="Messages"
 				/>
 			</section>
 		</main>
